@@ -114,7 +114,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Badge variant={task.status === 'COMPLETED' ? 'success' : task.status === 'IN_PROGRESS' ? 'default' : 'warning'}>
+            <Badge variant={task.status}>
               {task.status === 'COMPLETED' ? 'Completada' : task.status === 'IN_PROGRESS' ? 'En progreso' : 'Pendiente'}
             </Badge>
             <span className="text-xs text-gray-500">

@@ -107,14 +107,6 @@ export interface TaskFilters {
   searchTerm?: string;
 }
 
-export interface TaskFormData {
-  title: string;
-  description?: string;
-  status: string;
-  priority: string;
-  dueDate?: string;
-  assignedToId?: string;
-}
 
 // Invite member types
 export interface InviteMemberData {

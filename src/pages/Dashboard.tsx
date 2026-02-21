@@ -148,9 +148,8 @@ export const Dashboard: React.FC = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onView={handleViewTask}
-                  onEdit={handleEditTask}
-                  onDelete={() => {}}
+                  onClick={() => handleViewTask(task)}
+                  onQuickEdit={() => handleEditTask(task)}
                 />
               ))}
             </div>
@@ -175,9 +174,8 @@ export const Dashboard: React.FC = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onView={handleViewTask}
-                  onEdit={handleEditTask}
-                  onDelete={() => {}}
+                  onClick={() => handleViewTask(task)}
+                  onQuickEdit={() => handleEditTask(task)}
                 />
               ))}
             </div>

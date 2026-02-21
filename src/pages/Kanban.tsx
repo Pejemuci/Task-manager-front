@@ -8,6 +8,8 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { Layout } from '../components/layout/Layout';
+import { Loading } from '../components/ui/Loading';
 import { KanbanColumn } from '../components/kanban/KanbanColumn';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskModal } from '../components/tasks/TaskModal';
@@ -94,6 +96,8 @@ export const Kanban: React.FC = () => {
     setActiveTask(task || null);
   };
 
+  const VALID_STATUSES: string[] = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
@@ -101,7 +105,10 @@ export const Kanban: React.FC = () => {
     if (!over) return;
 
     const taskId = active.id as string;
+    // over.id puede ser el ID de una columna (status válido) o el ID de otra tarea (UUID).
+    // Solo procedemos si over.id corresponde a una columna válida.
     const newStatus = over.id as string;
+    if (!VALID_STATUSES.includes(newStatus)) return;
 
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
@@ -183,107 +190,109 @@ export const Kanban: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Cargando...</div>
-      </div>
+      <Layout title="Kanban">
+        <Loading text="Cargando tablero..." />
+      </Layout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vista Kanban</h1>
-          <p className="text-gray-600 mt-1">
-            Arrastra las tareas para cambiar su estado
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setEditingTask(null);
-            setNewTaskStatus('');
-            setIsModalOpen(true);
-          }}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
-        >
-          Nueva Tarea
-        </button>
-      </div>
-
-      {/* Filters */}
-      <FilterBar
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        priorityFilter={priorityFilter}
-        onPriorityChange={setPriorityFilter}
-        assignedFilter={assignedFilter}
-        onAssignedChange={setAssignedFilter}
-        members={members}
-      />
-
-      {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-6 overflow-x-auto pb-4">
-          <KanbanColumn
-            id="PENDING"
-            title="Pendiente"
-            tasks={pendingTasks}
-            onTaskClick={handleTaskClick}
-            onQuickComplete={handleQuickComplete}
-            onQuickEdit={handleQuickEdit}
-            onQuickDelete={handleQuickDelete}
-            onAddTask={() => handleAddTask('PENDING')}
-          />
-          <KanbanColumn
-            id="IN_PROGRESS"
-            title="En Progreso"
-            tasks={inProgressTasks}
-            onTaskClick={handleTaskClick}
-            onQuickComplete={handleQuickComplete}
-            onQuickEdit={handleQuickEdit}
-            onQuickDelete={handleQuickDelete}
-            onAddTask={() => handleAddTask('IN_PROGRESS')}
-          />
-          <KanbanColumn
-            id="COMPLETED"
-            title="Completado"
-            tasks={completedTasks}
-            onTaskClick={handleTaskClick}
-            onQuickComplete={handleQuickComplete}
-            onQuickEdit={handleQuickEdit}
-            onQuickDelete={handleQuickDelete}
-            onAddTask={() => handleAddTask('COMPLETED')}
-          />
+    <Layout title="Kanban">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Vista Kanban</h1>
+            <p className="text-gray-600 mt-1">
+              Arrastra las tareas para cambiar su estado
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingTask(null);
+              setNewTaskStatus('');
+              setIsModalOpen(true);
+            }}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+          >
+            Nueva Tarea
+          </button>
         </div>
 
-        <DragOverlay>
-          {activeTask ? (
-            <div className="opacity-80">
-              <TaskCard task={activeTask} onClick={() => { }} />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-
-      {/* Task Form Modal */}
-      {isModalOpen && (
-        <TaskModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingTask(null);
-            setNewTaskStatus('');
-          }}
-          onSubmit={handleModalSubmit}
-          task={editingTask || undefined}
+        {/* Filters */}
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          priorityFilter={priorityFilter}
+          onPriorityChange={setPriorityFilter}
+          assignedFilter={assignedFilter}
+          onAssignedChange={setAssignedFilter}
           members={members}
         />
-      )}
-    </div>
+
+        {/* Kanban Board */}
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-6 overflow-x-auto pb-4">
+            <KanbanColumn
+              id="PENDING"
+              title="Pendiente"
+              tasks={pendingTasks}
+              onTaskClick={handleTaskClick}
+              onQuickComplete={handleQuickComplete}
+              onQuickEdit={handleQuickEdit}
+              onQuickDelete={handleQuickDelete}
+              onAddTask={() => handleAddTask('PENDING')}
+            />
+            <KanbanColumn
+              id="IN_PROGRESS"
+              title="En Progreso"
+              tasks={inProgressTasks}
+              onTaskClick={handleTaskClick}
+              onQuickComplete={handleQuickComplete}
+              onQuickEdit={handleQuickEdit}
+              onQuickDelete={handleQuickDelete}
+              onAddTask={() => handleAddTask('IN_PROGRESS')}
+            />
+            <KanbanColumn
+              id="COMPLETED"
+              title="Completado"
+              tasks={completedTasks}
+              onTaskClick={handleTaskClick}
+              onQuickComplete={handleQuickComplete}
+              onQuickEdit={handleQuickEdit}
+              onQuickDelete={handleQuickDelete}
+              onAddTask={() => handleAddTask('COMPLETED')}
+            />
+          </div>
+
+          <DragOverlay>
+            {activeTask ? (
+              <div className="opacity-80">
+                <TaskCard task={activeTask} onClick={() => { }} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+
+        {/* Task Form Modal */}
+        {isModalOpen && (
+          <TaskModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingTask(null);
+              setNewTaskStatus('');
+            }}
+            onSubmit={handleModalSubmit}
+            task={editingTask || undefined}
+            members={members}
+          />
+        )}
+      </div>
+    </Layout>
   );
 };

@@ -7,6 +7,7 @@ export const authService = {
     if (data.success && data.data) {
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
+      localStorage.setItem('organization', JSON.stringify(data.data.organization));
       return data.data;
     }
     throw new Error('Error al iniciar sesión');
@@ -17,6 +18,7 @@ export const authService = {
     if (data.success && data.data) {
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
+      localStorage.setItem('organization', JSON.stringify(data.data.organization));
       return data.data;
     }
     throw new Error('Error al registrar usuario');
@@ -25,11 +27,17 @@ export const authService = {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('organization');
   },
 
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
+  },
+
+  getCurrentOrganization() {
+    const orgStr = localStorage.getItem('organization');
+    return orgStr ? JSON.parse(orgStr) : null;
   },
 
   getToken() {

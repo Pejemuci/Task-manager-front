@@ -87,17 +87,26 @@ export const Tasks: React.FC = () => {
   };
 
   const handleCreateTask = async (data: CreateTaskData) => {
-    await taskService.createTask(data);
-    toast.success('Tarea creada exitosamente');
-    loadData();
+    try {
+      await taskService.createTask(data);
+      toast.success('Tarea creada exitosamente');
+      loadData();
+    } catch (error) {
+      // El error ya se muestra en el interceptor de Axios
+      throw error;
+    }
   };
 
   const handleUpdateTask = async (data: CreateTaskData) => {
-    if (editingTask) {
+    if (!editingTask) return;
+    try {
       await taskService.updateTask(editingTask.id, data);
       toast.success('Tarea actualizada exitosamente');
       setEditingTask(undefined);
       loadData();
+    } catch (error) {
+      // El error ya se muestra en el interceptor de Axios
+      throw error;
     }
   };
 

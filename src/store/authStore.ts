@@ -32,9 +32,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initAuth: () => {
     const user = authService.getCurrentUser();
+    const organization = authService.getCurrentOrganization();
     const isAuthenticated = authService.isAuthenticated();
     if (user && isAuthenticated) {
-      set({ user, isAuthenticated: true });
+      set({ user, organization, isAuthenticated: true });
     }
   },
 }));
