@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 
 export const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [total, setTotal] = useState(0);
   const [members, setMembers] = useState<User[]>([]);
   const [filters, setFilters] = useState<TaskFiltersType>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -27,22 +27,28 @@ export const Tasks: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Resetear a página 1 cuando cambian los filtros enviados al servidor
   useEffect(() => {
-    loadData();
-  }, []);
+    setCurrentPage(1);
+  }, [filters.status, filters.priority, filters.assignedToId]);
 
+  // Recargar cuando cambia la página o los filtros del servidor
   useEffect(() => {
-    applyFilters();
-    setCurrentPage(1); // Reset página cuando cambian filtros
-  }, [tasks, filters, showCompleted]);
+    loadData(currentPage, {
+      status: filters.status,
+      priority: filters.priority,
+      assignedToId: filters.assignedToId,
+    });
+  }, [currentPage, filters.status, filters.priority, filters.assignedToId]);
 
-  const loadData = async () => {
+  const loadData = async (page = currentPage, apiFilters: Pick<TaskFiltersType, 'status' | 'priority' | 'assignedToId'> = {}) => {
     try {
-      const [tasksData, membersData] = await Promise.all([
-        taskService.getTasks(),
+      const [response, membersData] = await Promise.all([
+        taskService.getTasks(apiFilters, page, itemsPerPage),
         organizationService.getMembers(),
       ]);
-      setTasks(tasksData);
+      setTasks(response.data);
+      setTotal(response.total);
       setMembers(membersData);
     } catch (error) {
       toast.error('Error al cargar las tareas');
@@ -51,46 +57,17 @@ export const Tasks: React.FC = () => {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...tasks];
-
-    // Filtrar completadas si el toggle está OFF
-    if (!showCompleted) {
-      filtered = filtered.filter(task => task.status !== 'COMPLETED');
-    }
-
-    // Filtrar por estado
-    if (filters.status) {
-      filtered = filtered.filter(task => task.status === filters.status);
-    }
-
-    // Filtrar por prioridad
-    if (filters.priority) {
-      filtered = filtered.filter(task => task.priority === filters.priority);
-    }
-
-    // Filtrar por usuario asignado
-    if (filters.assignedToId) {
-      filtered = filtered.filter(task => task.assignedToId === filters.assignedToId);
-    }
-
-    // Filtrar por búsqueda
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(searchLower) ||
-        task.description?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    setFilteredTasks(filtered);
-  };
+  const reload = () => loadData(currentPage, {
+    status: filters.status,
+    priority: filters.priority,
+    assignedToId: filters.assignedToId,
+  });
 
   const handleCreateTask = async (data: CreateTaskData) => {
     try {
       await taskService.createTask(data);
       toast.success('Tarea creada exitosamente');
-      loadData();
+      reload();
     } catch (error) {
       // El error ya se muestra en el interceptor de Axios
       throw error;
@@ -103,7 +80,7 @@ export const Tasks: React.FC = () => {
       await taskService.updateTask(editingTask.id, data);
       toast.success('Tarea actualizada exitosamente');
       setEditingTask(undefined);
-      loadData();
+      reload();
     } catch (error) {
       // El error ya se muestra en el interceptor de Axios
       throw error;
@@ -115,7 +92,7 @@ export const Tasks: React.FC = () => {
       try {
         await taskService.deleteTask(taskId);
         toast.success('Tarea eliminada exitosamente');
-        loadData();
+        reload();
       } catch (error) {
         toast.error('Error al eliminar la tarea');
       }
@@ -145,11 +122,17 @@ export const Tasks: React.FC = () => {
     );
   }
 
-  // Calcular paginación
-  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
+  // Filtros client-side sobre la página recibida (showCompleted y searchTerm)
+  const displayTasks = tasks.filter(task => {
+    if (!showCompleted && task.status === 'COMPLETED') return false;
+    if (filters.searchTerm) {
+      const s = filters.searchTerm.toLowerCase();
+      return task.title.toLowerCase().includes(s) || task.description?.toLowerCase().includes(s);
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
     <Layout title="Tasks">
@@ -158,7 +141,7 @@ export const Tasks: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-text-primary">Gestión de Tareas</h2>
           <p className="text-text-secondary mt-1">
-            {filteredTasks.length} {filteredTasks.length === 1 ? 'tarea' : 'tareas'}
+            {total} {total === 1 ? 'tarea' : 'tareas'}
           </p>
         </div>
         <Button
@@ -193,14 +176,14 @@ export const Tasks: React.FC = () => {
       </div>
 
       {/* Tasks Table */}
-      <TaskTable tasks={paginatedTasks} onTaskClick={handleViewTask} />
+      <TaskTable tasks={displayTasks} onTaskClick={handleViewTask} />
 
       {/* Pagination */}
-      {filteredTasks.length > 0 && (
+      {total > 0 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={filteredTasks.length}
+          totalItems={total}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

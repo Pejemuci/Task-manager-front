@@ -53,7 +53,7 @@ export const Kanban: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const tasksData = await taskService.getTasks();
+      const { data: tasksData } = await taskService.getTasks();
       const membersData = await organizationService.getMembers();
       setTasks(tasksData);
       setMembers(membersData);

@@ -70,6 +70,13 @@ export interface AuthResponse {
   organization: Organization;
 }
 
+// Paginated API response
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+}
+
 // API Response types
 export interface ApiResponse<T = any> {
   success: boolean;

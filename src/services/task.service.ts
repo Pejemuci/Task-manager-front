@@ -1,15 +1,17 @@
 import api from './api';
-import { Task, CreateTaskData, UpdateTaskData, TaskFilters, ApiResponse } from '../types';
+import { Task, CreateTaskData, UpdateTaskData, TaskFilters, ApiResponse, PaginatedResponse } from '../types';
 
 export const taskService = {
-  async getTasks(filters?: TaskFilters): Promise<Task[]> {
+  async getTasks(filters?: TaskFilters, page?: number, limit?: number): Promise<PaginatedResponse<Task>> {
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
     if (filters?.priority) params.append('priority', filters.priority);
     if (filters?.assignedToId) params.append('assignedToId', filters.assignedToId);
-    
-    const { data } = await api.get<ApiResponse<Task[]>>(`/tasks?${params.toString()}`);
-    return data.data || [];
+    if (page) params.append('page', String(page));
+    if (limit) params.append('limit', String(limit));
+
+    const { data } = await api.get<ApiResponse<PaginatedResponse<Task>>>(`/tasks?${params.toString()}`);
+    return data.data ?? { data: [], total: 0, page: 1 };
   },
 
   async getTask(id: string): Promise<Task> {

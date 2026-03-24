@@ -33,7 +33,7 @@ export const Dashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       // Cargar todas las tareas
-      const allTasks = await taskService.getTasks();
+      const { data: allTasks } = await taskService.getTasks();
       
       // Calcular estadísticas
       const dashboardStats: DashboardStats = {
