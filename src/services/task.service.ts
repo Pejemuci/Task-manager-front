@@ -11,6 +11,7 @@ export const taskService = {
     if (limit) params.append('limit', String(limit));
 
     const { data } = await api.get<any>(`/tasks?${params.toString()}`);
+    console.log('[getTasks] respuesta cruda de la API:', JSON.stringify(data, null, 2));
 
     // Normaliza la respuesta paginada independientemente del formato que devuelva el backend:
     //   Formato A – envelope ApiResponse anidado: { success, data: { data|items|rows: Task[], total, page } }
