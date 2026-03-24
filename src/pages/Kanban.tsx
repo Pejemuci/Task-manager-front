@@ -53,9 +53,9 @@ export const Kanban: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const { data: tasksData } = await taskService.getTasks();
+      const { data: rawTasks } = await taskService.getTasks();
       const membersData = await organizationService.getMembers();
-      setTasks(tasksData);
+      setTasks(Array.isArray(rawTasks) ? rawTasks : []);
       setMembers(membersData);
     } catch (error) {
       console.error('Error loading data:', error);

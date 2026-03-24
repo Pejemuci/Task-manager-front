@@ -47,8 +47,8 @@ export const Tasks: React.FC = () => {
         taskService.getTasks(apiFilters, page, itemsPerPage),
         organizationService.getMembers(),
       ]);
-      setTasks(response.data);
-      setTotal(response.total);
+      setTasks(Array.isArray(response.data) ? response.data : []);
+      setTotal(Number(response.total) || 0);
       setMembers(membersData);
     } catch (error) {
       toast.error('Error al cargar las tareas');
@@ -123,7 +123,7 @@ export const Tasks: React.FC = () => {
   }
 
   // Filtros client-side sobre la página recibida (showCompleted y searchTerm)
-  const displayTasks = tasks.filter(task => {
+  const displayTasks = (Array.isArray(tasks) ? tasks : []).filter(task => {
     if (!showCompleted && task.status === 'COMPLETED') return false;
     if (filters.searchTerm) {
       const s = filters.searchTerm.toLowerCase();
